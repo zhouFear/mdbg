@@ -34,6 +34,14 @@ DWORD WINAPI dbghelper::ThreadFunc(LPVOID p)
 	return 1;
 }
 
+BOOL dbghelper::RegisterCallBack(HANDLE hProcess, ULONG actionCode, PVOID callbackData, PVOID userContext)
+{
+	char szTemp[500];
+	sprintf_s(szTemp, 500, "%X", actionCode);
+	OutputDebugString(szTemp);
+	return TRUE;
+}
+
 void dbghelper::attachProcess(UINT processId)
 {
 	_SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
@@ -49,6 +57,8 @@ void dbghelper::attachProcess(UINT processId)
 			return;
 		}
 		BOOL ret = DebugActiveProcess(processId);
+		ret = _SymRegisterCallback(hProcess, dbghelper::RegisterCallBack, (PVOID)this);
+		ret = getModuleList(hProcess);
 		startDebug();
 		CloseHandle(hProcess);
 	}
@@ -70,14 +80,19 @@ BOOL dbghelper::getModuleList(HANDLE hProcess)
 		printf("CreateToolhelp32Snapshot error.\n");
 		return FALSE;
 	}
-	MODULEENTRY32 moudle32;
-	memset(&moudle32, 0, sizeof(moudle32));
-	moudle32.dwSize = sizeof(moudle32);
-	BOOL bM = Module32First(hMoudleSnap, &moudle32);
+	MODULEENTRY32 module32;
+	memset(&module32, 0, sizeof(module32));
+	module32.dwSize = sizeof(module32);
+	BOOL bM = Module32First(hMoudleSnap, &module32);
 	while (bM)
 	{
-		_SymLoadModule64(hProcess, 0, moudle32.szExePath, );
+		_SymLoadModule64(hProcess, 0, module32.szExePath, module32.szModule, (DWORD64)module32.modBaseAddr, module32.modBaseSize);
+		bM = Module32Next(hMoudleSnap, &module32);
+		char szTemp[500] = {0};
+		sprintf_s(szTemp, 500, "%s loaded!\n", module32.szModule);
+		OutputDebugString(szTemp);
 	}
+	return TRUE;
 }
 
 DWORD dbghelper::_SymSetOptions(DWORD SymOptions)
@@ -96,4 +111,21 @@ BOOL dbghelper::_SymInitialize(HANDLE hProces, PCSTR UserSearchPath, BOOL fInvad
 		m_pSymInitialize = (SymInitializeFunc)GetProcAddress(m_dllHandle, "SymInitialize");
 	}
 	return m_pSymInitialize(hProces, UserSearchPath, fInvadeProcess);
+}
+
+DWORD64 dbghelper::_SymLoadModule64(HANDLE hProcess, HANDLE hFile, PCSTR ImageName, PCSTR ModuleName, DWORD64 BaseOfDll, DWORD SizeOfDll)
+{
+	if (!m_pSymLoadModule64)
+	{
+		m_pSymLoadModule64 = (SymLoadModule64Func)GetProcAddress(m_dllHandle, "SymLoadModule64");
+	}
+	return m_pSymLoadModule64(hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll);
+}
+
+BOOL dbghelper::_SymRegisterCallback(HANDLE hProcess, PSYMBOL_REGISTERED_CALLBACK CallbackFunction, PVOID UserContext)
+{
+	if (!m_pSymRegisterCallback) {
+		m_pSymRegisterCallback = (SymRegisterCallbackFunc)GetProcAddress(m_dllHandle, "SymRegisterCallback");
+	}
+	return m_pSymRegisterCallback(hProcess, CallbackFunction, UserContext);
 }
