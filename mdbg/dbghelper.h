@@ -4,6 +4,7 @@
 #include <map>
 class dbghelper
 {
+	friend class SingletonT<dbghelper>;
 	typedef DWORD (_stdcall *SymSetOptionsFunc)(_In_ DWORD   SymOptions);
 	typedef BOOL(_stdcall *SymInitializeFunc)(
 		_In_ HANDLE hProcess,

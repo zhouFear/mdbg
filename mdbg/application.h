@@ -1,7 +1,8 @@
 #pragma once
 #include "framework.h"
 #include "resource.h"
-#include "mprocesshandler.h"
+#include "processdlg.h"
+#include <memory>
 
 #define MAX_LOADSTRING 100
 class application
@@ -26,11 +27,11 @@ public:
 	static INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 	static INT_PTR CALLBACK _ProcessDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 private:
-	HINSTANCE m_inst;
-	LPWSTR    m_cmdLine;
-	HWND      m_hwnd;
-	int       m_nCmdShow;
-	WCHAR szWindowClass[MAX_LOADSTRING];
-	mprocesshandler* m_pProcessHandler;
+	HINSTANCE			m_inst;
+	LPWSTR				m_cmdLine;
+	HWND				m_hwnd;
+	int					m_nCmdShow;
+	WCHAR				szWindowClass[MAX_LOADSTRING];
+	std::shared_ptr<ProcessDlg>	m_pProcessDlg;
 };
 

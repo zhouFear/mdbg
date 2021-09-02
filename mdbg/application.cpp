@@ -1,18 +1,17 @@
 #include "application.h"
 #include <stdio.h>
-#include <locale.h>
+#include "consoleMgr.h"
 
 #define SAFE_CLOSE(f) if(f) fclose(f);
 
-application::application(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow): m_inst(hInstance), m_cmdLine(lpCmdLine), m_nCmdShow(nCmdShow),m_hwnd(NULL), m_pProcessHandler(NULL)
+application::application(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow): m_inst(hInstance), m_cmdLine(lpCmdLine), m_nCmdShow(nCmdShow),m_hwnd(NULL)
 {
 	LoadStringW(m_inst, IDC_MDBG, szWindowClass, MAX_LOADSTRING);
-	m_pProcessHandler = new mprocesshandler();
+	m_pProcessDlg = std::make_shared<ProcessDlg>();
 }
 
 application::~application()
 {
-
 }
 
 BOOL application::run()
@@ -34,16 +33,9 @@ void application::_init()
 
 void application::_createConsoleWindow()
 {
-	FILE* fpDebugOut = NULL;
-	FILE* fpDebugIn = NULL;
-	if (!AllocConsole()) MessageBox(NULL, _T("控制台生成失败。"), NULL, 0);
-	SetConsoleTitle(_T("Debug Window"));
-	_tfreopen_s(&fpDebugOut, _T("CONOUT$"), _T("w"), stdout);
-	_tfreopen_s(&fpDebugIn, _T("CONIN$"), _T("r"), stdin);
-	_tsetlocale(LC_ALL, _T("chs"));
-
-	SAFE_CLOSE(fpDebugOut);
-	SAFE_CLOSE(fpDebugIn);
+	consoleMgr::getInstance()->createConsoleWindow();
+	// SAFE_CLOSE(fpDebugOut);
+	// SAFE_CLOSE(fpDebugIn);
 }
 
 BOOL application::_createWnd()
@@ -131,7 +123,7 @@ LRESULT CALLBACK application::_myWndProc(HWND hWnd, UINT message, WPARAM wParam,
 			pThis->_createConsoleWindow();
 			break;
 		case ID_ATTACHPROCESS:
-			DialogBoxParam(pThis->m_inst, MAKEINTRESOURCE(IDD_DIALOG_PROCESS), hWnd, mprocesshandler::_ProcessDlgProc, LPARAM(pThis->m_pProcessHandler));
+			DialogBoxParam(pThis->m_inst, MAKEINTRESOURCE(IDD_DIALOG_PROCESS), hWnd, ProcessDlg::ProcessDlgProc, LPARAM(pThis->m_pProcessDlg.get()));
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);

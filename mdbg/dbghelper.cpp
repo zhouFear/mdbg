@@ -2,6 +2,8 @@
 #include <dbghelp.h>
 #include "dbghelper.h"
 #include <tlhelp32.h>
+#include "singleton.h"
+#include <DbgEng.h>
 
 dbghelper* dbghelper::instance = nullptr;
 
