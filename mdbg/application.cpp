@@ -28,7 +28,7 @@ BOOL application::run()
 
 void application::_init()
 {
-	// ³õÊ¼»¯
+	// åˆå§‹åŒ–
 }
 
 void application::_createConsoleWindow()
@@ -40,7 +40,7 @@ void application::_createConsoleWindow()
 
 BOOL application::_createWnd()
 {
-	WCHAR szTitle[MAX_LOADSTRING];                  // ±êÌâÀ¸ÎÄ±¾
+	WCHAR szTitle[MAX_LOADSTRING];                  // æ ‡é¢˜æ æ–‡æœ¬
 	LoadStringW(m_inst, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, m_inst, this);
@@ -84,7 +84,7 @@ UINT application::_winmsgloop()
 
 	MSG msg;
 
-	// Ö÷ÏûÏ¢Ñ­»·:
+	// ä¸»æ¶ˆæ¯å¾ªç¯:
 	while (GetMessage(&msg, nullptr, 0, 0))
 	{
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
@@ -102,14 +102,15 @@ LRESULT CALLBACK application::_myWndProc(HWND hWnd, UINT message, WPARAM wParam,
 	{
 	case WM_CREATE:
 	{
-		application* pThis = reinterpret_cast<application*>(lParam);
-		SetWindowLongPtr(hWnd, GWL_USERDATA, lParam);
+		application* pThis = reinterpret_cast<application*>(reinterpret_cast<LPCREATESTRUCT>(lParam)->lpCreateParams);
+		SetWindowLongPtr(hWnd, GWL_USERDATA, (LONG)pThis);
+		break;
 	}
 	case WM_COMMAND:
 	{
 		application* pThis = reinterpret_cast<application*>(GetWindowLongPtr(hWnd, GWL_USERDATA));
 		int wmId = LOWORD(wParam);
-		// ·ÖÎö²Ëµ¥Ñ¡Ôñ:
+		// åˆ†æèœå•é€‰æ‹©:
 		switch (wmId)
 		{
 		case IDM_ABOUT:
@@ -134,7 +135,7 @@ LRESULT CALLBACK application::_myWndProc(HWND hWnd, UINT message, WPARAM wParam,
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-		// TODO: ÔÚ´Ë´¦Ìí¼ÓÊ¹ÓÃ hdc µÄÈÎºÎ»æÍ¼´úÂë...
+		// TODO: åœ¨æ­¤å¤„æ·»åŠ ä½¿ç”¨ hdc çš„ä»»ä½•ç»˜å›¾ä»£ç ...
 		EndPaint(hWnd, &ps);
 	}
 	break;
